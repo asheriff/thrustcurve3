@@ -129,7 +129,9 @@ app.use(function(req, res, next) {
 app.use('/', index);
 app.use('/', info);
 app.use('/', motors);
-app.use('/', manufacturers);
+// In most of the frameworks I'm familiar with the routes aren't aware where
+// they're mounted, they leave that up to the app.
+app.use('/manufacturers', manufacturers);
 app.use('/', contributors);
 app.use('/', mystuff);
 

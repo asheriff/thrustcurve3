@@ -7,7 +7,10 @@
 var express = require('express'),
     router = express.Router(),
     metadata = require('./metadata.js'),
-    locals = require('./locals.js');
+    locals = require('./locals.js'),
+    // Would it make sense to require the db instead of tacking it onto the
+    // req on app.js:94?
+    db = require('./database/db');
 
 var defaults = {
   layout: 'info',
@@ -26,6 +29,67 @@ function mfrQuery(req) {
   return { $or: [ { name: name }, { abbrev: name } ] };
 }
 
+// It might make sense to separate the routes from the route handling functions.
+// That way the functions can be exported and unit tested without involving the
+// router by stubbing out the `req` arg.
+function listManufactures(req, res, next) {
+
+}
+
+function showManufacture(req, res, next) {
+
+}
+
+function editManufacture(req, res, next) {
+
+}
+
+function updateManufacture(req, res, next) {
+
+}
+
+function deleteManufacture(req, res, next) {
+
+}
+
+function showManufactureMotors(req, res, next) {
+
+}
+
+router.route('/')
+  .get(listManufactures)
+;
+
+router.route('/:id')
+  .get(showManufacture)
+  .post(updateManufacture)
+  .delete(deleteManufacture)
+;
+
+router.route('/:id/edit')
+  .get(editManufacture)
+;
+
+router.route('/:id/motors')
+  .get(showManufactureMotors)
+;
+
+// I think any routes that have an ":id" in the route string will call this
+// first and tack the manufacturer onto the req before calling next().
+//
+// See http://expressjs.com/en/4x/api.html#router.param
+router.param('id', function(req, res, next, id) {
+  db.Manufacturer.findById(id, function(err, manufacturer) {
+    if (err) {
+      next(err);
+    } else if (manufacturer) {
+      req.manufacturer = manufacturer;
+      next();
+    } else {
+      next(new Error('Unable to load manufacturer `' + manufacturer + '`'));
+    }
+  });
+});
 
 /*
  * /manufacturers/
@@ -169,6 +233,7 @@ router.post('/manufacturers/:id/edit.html', function(req, res, next) {
  * Either manufacturer list or motors for a manufacturer.
  */
 router.get(['/manufacturers.shtml'], function(req, res, next) {
+  // Could this be better handled by the web server?
   var id = req.query.id;
   if (id && /^[1-9][0-9]?$/.test(id)) {
     // old-style MySQL row ID; go to motor list
